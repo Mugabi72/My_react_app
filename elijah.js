@@ -99,7 +99,6 @@ async function main() {
 
     const result = calculateGrade(mark);
 
-    
     students.push({
       name: name,
       mark: mark,
