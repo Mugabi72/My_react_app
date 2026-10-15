@@ -110,4 +110,10 @@ async function main() {
   rl.close();
 }
 
-main();
+main(); 
+ 
+function displayReport(studentList) {while (isNaN(totalStudents) || totalStudents <= 0) {
+  console.log("Please enter a valid positive number.");
+  countInput = await askQuestion("Enter the total number of students to grade: ");
+  totalStudents = parseInt(countInput);
+}
