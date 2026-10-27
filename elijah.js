@@ -118,12 +118,12 @@ function displayReport(studentList) {while (isNaN(totalStudents) || totalStudent
   totalStudents = parseInt(countInput);
 }  
 
-# Notes on Your Student Grading System (Node.js CLI)
+ Notes on Your Student Grading System (Node.js CLI)
 
-## 1. What the program does
+ 1. What the program does
 It asks for the number of students, then each student's name and mark (0-100). It assigns a grade and remark, stores the results, and prints a report with the class average.
 
-## 2. Key concepts used
+2. Key concepts used
 
 | Concept | Where | Purpose |
 |---|---|---|
@@ -140,7 +140,7 @@ It asks for the number of students, then each student's name and mark (0-100). I
 | `toFixed(2)` | statistics | Rounds the average to 2 decimal places (returns a string) |
 | Template literals | report | `${value}` inserts variables into text |
 
-## 3. Grading scale
+ 3. Grading scale
 
 | Mark | Grade | Remark |
 |---|---|---|
@@ -150,12 +150,12 @@ It asks for the number of students, then each student's name and mark (0-100). I
 | 50-59 | D | Pass |
 | 0-49 | F | Fail |
 
-## 4. Errors in the code you pasted
+ 4. Errors in the code you pasted
 
-1. **Stray `*/`** before `displayReport` and `main`. These are leftovers of deleted comments and cause a syntax error.
-2. **Broken validation in `main()`**: the line `while (isNaN(totalStudents) || totalStudents <= 0)` is missing, leaving a loose `{ ... }` block.
-3. **Duplicate `function displayReport(...) {while...` at the bottom**. This is invalid, and `await` can't be used outside an `async` function. Delete it.
-4. **Truncated separators**: `console.log("\n=")` should be a full line like `"=".repeat(55)`.
+1. Stray `*/`** before `displayReport` and `main`. These are leftovers of deleted comments and cause a syntax error.
+2. Broken validation in `main()`**: the line `while (isNaN(totalStudents) || totalStudents <= 0)` is missing, leaving a loose `{ ... }` block.
+3. Duplicate `function displayReport(...) {while...` at the bottom**. This is invalid, and `await` can't be used outside an `async` function. Delete it.
+4. Truncated separators**: `console.log("\n=")` should be a full line like `"=".repeat(55)`.
 5. **Calling `main()` before cleanup** is fine, but nothing should come after it.
 
 ## 5. Corrected code
@@ -251,17 +251,72 @@ async function main() {
 main();
 ```
 
-## 6. Program flow
+ 6. Program flow
 1. Start → welcome banner
 2. Ask for number of students → validate (`while`)
 3. Loop per student → ask name → ask mark → validate → `calculateGrade()` → push to array
 4. `displayReport()` → calls `calculateClassStatistics()`
 5. Close `readline` → end
 
-## 7. Good points to mention in an exam or report
-- **Modularity**: each function has one responsibility.
-- **Input validation**: prevents crashes from bad data.
-- **Separation of concerns**: logic (grading) is separate from display (report).
-- **Possible improvements**: save results to a file with `fs`, add highest/lowest mark, count passes and fails, or sort students by mark.
+ 7. Good points to mention in an exam or report
+- Modularity**: each function has one responsibility.
+- Input validation**: prevents crashes from bad data.
+- Separation of concerns**: logic (grading) is separate from display (report).
+- Possible improvements**: save results to a file with `fs`, add highest/lowest mark, count passes and fails, or sort students by mark.
 
-Want these notes as a Word document, or a short exam-style Q&A on this program?                                     
+Want these notes as a Word document, or a short exam-style Q&A on this program? 
+
+
+   Notes: Student Grading System (Node.js CLI)
+
+ 1. Purpose
+A command-line program that takes the number of students, then each student's name and mark (0-100). It assigns a grade and remark to each, then prints a report with the class average.
+
+ 2. Grading scale
+
+| Mark | Grade | Remark |
+|---|---|---|
+| 80-100 | A | First Class, Excellent |
+| 70-79 | B | Second Class Upper, Very Good |
+| 60-69 | C | Second Class Lower, Good |
+| 50-59 | D | Pass |
+| 0-49 | F | Fail |
+
+ 3. Structure of the program
+
+| Part | Role |
+|---|---|
+| `readline` + `askQuestion()` | Reads terminal input. The Promise wrapper lets us use `await`. |
+| `calculateGrade(mark)` | Uses an `if / else if` chain to return `{grade, remark}`. |
+| `calculateClassStatistics(list)` | Loops through the marks, then returns the average (`toFixed(2)`) and the total. |
+| `displayReport(list)` | Prints the table of students, then the statistics. |
+| `main()` | `async` function that controls the whole flow. |
+
+ 4. Key concepts
+- Async/await**: pauses until the user types an answer.
+- Array of objects**: each student is `{name, mark, grade, remark}`.
+- Input validation**: a `while` loop with `isNaN()` repeats the question until the input is valid. The student count must be > 0 and each mark must be 0-100.
+- Type conversion**: `parseInt` and `parseFloat` turn text into numbers.
+- Template literals**: `${value}` inserts variables into strings.
+- Modularity**: each function does one job.
+
+5. Program flow
+1. Show the welcome banner.
+2. Ask for the number of students and validate it.
+3. For each student: ask for the name, ask for the mark and validate it, call `calculateGrade()`, then push the result to the array.
+4. Call `displayReport()`, which calls `calculateClassStatistics()`.
+5. Close `readline`.
+
+ 6. Errors in your pasted code (and fixes)
+1. Stray `*/`** before `displayReport` and `main`: leftover comment endings cause a syntax error. Remove them.
+2. Missing `while` line in `main()`**: the validation block has lost its `while (isNaN(totalStudents) || totalStudents <= 0)` header. Restore it.
+3. Duplicate `displayReport` at the bottom**: it contains `await` outside an `async` function. Delete it.
+4. Truncated separators**: `"\n="` should be a full line, e.g. `"=".repeat(60)`.
+5. Nothing should come after `main();`.**
+
+ 7. Exam points
+- Strengths**: modular design, input validation, and separation of logic from display.
+- Possible improvements**: save results to a file with `fs`, show the highest and lowest marks, count passes and fails, and sort students by mark.
+
+Want these as a Word document, or a few exam-style questions on this program?
+  
