@@ -319,4 +319,124 @@ A command-line program that takes the number of students, then each student's na
 - Possible improvements**: save results to a file with `fs`, show the highest and lowest marks, count passes and fails, and sort students by mark.
 
 Want these as a Word document, or a few exam-style questions on this program?
-  
+
+  Here is extra material you can add to your notes, in the same structure.
+
+## 8. How to run the program
+1. Install Node.js and check it with `node -v`.
+2. Save the code as `grading.js`.
+3. In the terminal, run `node grading.js`.
+
+## 9. Sample run
+```
+Enter the total number of students to grade: 3
+Student 1: Mary, mark 85  -> A, First Class - Excellent
+Student 2: John, mark 67  -> C, Second Class Lower - Good
+Student 3: Paul, mark 42  -> F, Fail
+
+Total Students Processed : 3
+Class Average Mark       : 64.67%
+```
+Average = (85 + 67 + 42) / 3 = 64.67
+
+## 10. Test cases (validation and boundaries)
+
+| Input | Expected result |
+|---|---|
+| Students = `abc` or `0` or `-2` | "Please enter a valid positive number." and asks again |
+| Mark = `105`, `-5` or `xyz` | "Invalid mark!" and asks again |
+| Mark = `80` | A (boundary) |
+| Mark = `79.9` | B (decimals are allowed because of `parseFloat`) |
+| Mark = `50` | D (lowest pass) |
+| Mark = `49` | F |
+
+## 11. Function details
+
+| Function | Input | Output | Notes |
+|---|---|---|---|
+| `askQuestion(query)` | prompt text | Promise with typed answer | Wraps `rl.question` so `await` works |
+| `calculateGrade(mark)` | number | `{grade, remark}` | Checks from the highest range down, so each `else if` only runs when the one above failed |
+| `calculateClassStatistics(list)` | array | `{average, total}` | Returns 0 for an empty list to avoid dividing by zero |
+| `displayReport(list)` | array | prints to console | No return value; only handles display |
+| `main()` | none | none | Controls the whole flow |
+
+## 12. Important points to understand
+- **Why `async/await`?** `rl.question` is callback-based. Wrapping it in a Promise makes the code read top to bottom instead of nesting callbacks.
+- **Why `toFixed(2)` gives a string:** it is fine for printing, but convert it with `Number()` if you need to calculate with it.
+- **Why `rl.close()`?** Without it, the program stays open waiting for input.
+- **`const` vs `let`:** `const` for values that never change (`students`, `rl`), `let` for ones that do (`totalStudents`, `mark`).
+- **Efficiency:** the loops run once per student, so the program is O(n), which is fast for a class.
+
+## 13. Limitations
+- Data is lost when the program closes, because nothing is saved.
+- Names are not checked, so an empty name is accepted.
+- It handles one subject only.
+- It is a terminal program with no graphical interface.
+
+## 14. Improvement: highest, lowest, pass and fail counts
+Replace `calculateClassStatistics` with:
+```javascript
+function calculateClassStatistics(studentList) {
+  if (studentList.length === 0) {
+    return { average: "0.00", total: 0, highest: 0, lowest: 0, passed: 0, failed: 0 };
+  }
+  const marks = studentList.map(s => s.mark);
+  const sum = marks.reduce((a, b) => a + b, 0);
+  const passed = studentList.filter(s => s.mark >= 50).length;
+
+  return {
+    average: (sum / marks.length).toFixed(2),
+    total: marks.length,
+    highest: Math.max(...marks),
+    lowest: Math.min(...marks),
+    passed,
+    failed: marks.length - passed
+  };
+}
+```
+Then add these lines to `displayReport`:
+```javascript
+console.log(`Highest Mark : ${stats.highest}`);
+console.log(`Lowest Mark  : ${stats.lowest}`);
+console.log(`Passed / Failed : ${stats.passed} / ${stats.failed}`);
+```
+
+## 15. Likely exam questions
+
+1. What is the purpose of `readline`?** It reads user input from the terminal in Node.js.
+2. Why is `main()` declared `async`?** So that `await` can pause the program until the user answers.
+3. Difference between `parseInt` and `parseFloat`?** `parseInt` returns whole numbers only, while `parseFloat` keeps decimals (e.g. 72.5).
+4. What does `isNaN()` do?** It checks whether a value is not a number, which catches invalid input.
+5. Why use functions?** They make code reusable, easier to test and easier to read (modularity).
+6. What is the difference between a `for` loop and a `while` loop?** A `for` loop runs a known number of times (per student), while a `while` loop repeats until a condition is met (validation).
+
+16. Key terms
+- CLI:** Command Line Interface, where you interact by typing text.
+- Promise:** an object that represents a value that will be available later.
+- Template literal:** a string in backticks that can include `${variables}`.
+- Validation:** checking that input is correct before using it.
+- Modularity:** splitting a program into small, single-purpose parts.
+
+Want all of this combined with your earlier notes into one Word document?
+function calculateClassStatistics(studentList) {
+  if (studentList.length === 0) {
+    return { average: "0.00", total: 0, highest: 0, lowest: 0, passed: 0, failed: 0 };
+  }
+  const marks = studentList.map(s => s.mark);
+  const sum = marks.reduce((a, b) => a + b, 0);
+  const passed = studentList.filter(s => s.mark >= 50).length;
+
+  return {
+    average: (sum / marks.length).toFixed(2),
+    total: marks.length,
+    highest: Math.max(...marks),
+    lowest: Math.min(...marks),
+    passed,
+    failed: marks.length - passed
+  };
+}
+
+console.log(`Highest Mark : ${stats.highest}`);
+console.log(`Lowest Mark  : ${stats.lowest}`);
+console.log(`Passed / Failed : ${stats.passed} / ${stats.failed}`);
+                                     
