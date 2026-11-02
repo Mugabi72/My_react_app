@@ -436,6 +436,107 @@ function calculateClassStatistics(studentList) {
   };
 }
 
+
+Here is more material, continuing from section 16 in the same structure.
+
+## 17. Extra improvements
+
+**a) Reject empty names**
+```javascript
+let name = (await askQuestion(`Enter name for Student ${i}: `)).trim();
+while (name === "") {
+  console.log("Name cannot be empty.");
+  name = (await askQuestion(`Enter name for Student ${i}: `)).trim();
+}
+```
+
+**b) Sort students by mark (highest first)**
+```javascript
+students.sort((a, b) => b.mark - a.mark);
+```
+Call this before `displayReport(students)`.
+
+**c) Align the report columns with `padEnd`**
+`\t` breaks when names have different lengths. This is cleaner:
+```javascript
+console.log(`${s.name.padEnd(15)}${String(s.mark).padEnd(8)}${s.grade.padEnd(8)}${s.remark}`);
+```
+
+**d) Save the report to a file with `fs`**
+```javascript
+const fs = require('fs');
+fs.writeFileSync('report.json', JSON.stringify(students, null, 2));
+console.log("Results saved to report.json");
+```
+This fixes the limitation that data is lost when the program closes.
+
+**e) Grade distribution (how many A's, B's, etc.)**
+```javascript
+function gradeDistribution(list) {
+  const counts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+  list.forEach(s => counts[s.grade]++);
+  return counts;
+}
+```
+
+## 18. Concepts explained in more depth
+
+| Concept | Explanation |
+|---|---|
+| Callback vs Promise | A callback runs when a task finishes. A Promise is an object that will hold the result later, so you can `await` it instead of nesting callbacks. |
+| Event loop | Node.js is single-threaded. While it waits for input, the event loop lets it handle other tasks without freezing. |
+| Truthy / falsy | `0`, `""`, `NaN` and `null` are falsy. Every other value is truthy. |
+| `map`, `filter`, `reduce` | `map` transforms each item, `filter` keeps items that match a condition, `reduce` combines all items into one value (e.g. a sum). |
+| Spread operator `...` | `Math.max(...marks)` expands the array into separate arguments. |
+| Object shorthand | `{ name, mark }` is the same as `{ name: name, mark: mark }`. |
+| Scope | `let` and `const` are block-scoped (live inside `{ }`), while `var` is function-scoped. |
+
+## 19. Common mistakes to avoid
+- Forgetting `await`, so you get `Promise { <pending> }` instead of the answer.
+- Using `=` instead of `===` in conditions (`=` assigns, `===` compares).
+- Forgetting to convert input: `rl.question` always returns a **string**, so `"80" + "20"` gives `"8020"`.
+- Not calling `rl.close()`, which leaves the program hanging.
+- Putting code after `main();` or leaving stray `*/` from deleted comments.
+
+## 20. Debugging tips
+- Use `console.log(variable)` to check values at each step.
+- Read the error message: it gives the file name and line number (e.g. `SyntaxError: Unexpected token '*'`).
+- Run `node --check grading.js` to find syntax errors without running the program.
+- Test boundary values (49, 50, 79, 80) and bad input (letters, negatives).
+
+## 21. Types of errors
+
+| Type | Example in this program |
+|---|---|
+| Syntax error | Stray `*/`, missing `while` line |
+| Runtime error | Using `await` outside an `async` function |
+| Logic error | Using `>` instead of `>=`, so a mark of 80 would get B instead of A |
+
+## 22. More exam questions
+
+**Short answer**
+1. **Why does `calculateGrade` check from 80 downwards?** Each `else if` only runs if the previous test failed, so ranges don't need a lower bound.
+2. **What would happen if `rl.close()` were removed?** The program would not exit because the input stream stays open.
+3. **Why is `toFixed(2)` result a string?** It formats the number for display, and the formatted text is returned as a string.
+4. **Name two limitations of the program.** No data storage and no graphical interface.
+
+**Long answer**
+1. Explain how input validation works in this program, with an example. *(Mention the `while` loop, `isNaN()`, the 0-100 range, and the re-prompt message.)*
+2. Describe the role of each function and explain why modular design is useful. *(Reusable, easier to test, easier to debug, easier to read.)*
+3. Suggest and explain three improvements to the system. *(Saving to file, sorting, statistics, empty-name check.)*
+
+## 23. Real-world uses
+This logic is the basis of school result systems, online exam platforms and payroll or performance rating tools. A real system would add a database, a login, a web or mobile interface, and multiple subjects per student.
+
+## 24. Quick revision summary
+- **Input:** `readline` + Promise + `async/await`
+- **Processing:** `if / else if`, loops, array of objects
+- **Output:** template literals, `toFixed(2)`, `padEnd`
+- **Safety:** validation with `while` + `isNaN()`
+- **Design:** modular functions, one job each
+
+Would you like all 24 sections combined into one Word document?
+
 console.log(`Highest Mark : ${stats.highest}`);
 console.log(`Lowest Mark  : ${stats.lowest}`);
 console.log(`Passed / Failed : ${stats.passed} / ${stats.failed}`);
