@@ -475,3 +475,308 @@ Your name
 - **Markdown:** a simple text format used for READMEs (`.md`).
 
 Want all of this combined with your earlier notes into one Word document?
+
+
+
+
+
+Here is more material, continuing from section 19 in the same structure.
+
+## 20. Breaking the app into smaller components
+
+Large apps split the UI into small, single-purpose components. Here the app is divided into `TaskInput`, `TaskList` and `TaskItem`.
+
+```jsx
+// TaskItem.jsx
+function TaskItem({ task, onToggle, onRemove }) {
+  return (
+    <li>
+      <span
+        onClick={() => onToggle(task.id)}
+        style={{ textDecoration: task.done ? "line-through" : "none", cursor: "pointer" }}
+      >
+        {task.text}
+      </span>{" "}
+      <button onClick={() => onRemove(task.id)}>X</button>
+    </li>
+  );
+}
+export default TaskItem;
+```
+
+```jsx
+// TaskList.jsx
+import TaskItem from "./TaskItem";
+
+function TaskList({ tasks, onToggle, onRemove }) {
+  return (
+    <ul>
+      {tasks.map((t) => (
+        <TaskItem key={t.id} task={t} onToggle={onToggle} onRemove={onRemove} />
+      ))}
+    </ul>
+  );
+}
+export default TaskList;
+```
+
+```jsx
+// App.jsx (uses the components)
+<TaskList tasks={tasks} onToggle={toggleTask} onRemove={removeTask} />
+```
+
+**Why do this?**
+- Each file has one job, so the code is easier to read and debug.
+- Components can be reused in other projects.
+- The parent (`App`) owns the state and passes data down as **props**. The children send actions back up by calling the functions they receive. This pattern is called **lifting state up**.
+
+## 21. Styling the app with CSS
+
+Create `App.css` and import it in `App.jsx` with `import "./App.css";`.
+
+```css
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.container {
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+input {
+  padding: 8px;
+  width: 65%;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.done {
+  text-decoration: line-through;
+  color: gray;
+}
+```
+
+**Notes:**
+- In JSX use `className`, not `class`, because `class` is a reserved word in JavaScript.
+- Example: `<div className="container">`.
+- Inline styles use an object with camelCase names: `style={{ backgroundColor: "red" }}`.
+
+## 22. Other common hooks
+
+| Hook | Purpose | Example use |
+|---|---|---|
+| `useState` | Stores changing data | Input text, task list |
+| `useEffect` | Runs code after render (side effects) | Saving to `localStorage`, fetching data |
+| `useRef` | Holds a value or DOM element without causing a re-render | Focusing the input after adding a task |
+| `useContext` | Shares data across components without passing props at every level | Theme, logged-in user |
+| `useReducer` | Manages complex state with actions | Larger to-do apps |
+| `useMemo` | Remembers a calculated value | Expensive calculations |
+
+**Example: focus the input after adding a task (`useRef`)**
+```jsx
+import { useRef } from "react";
+
+const inputRef = useRef(null);
+
+const addTask = () => {
+  if (task.trim() === "") return;
+  setTasks([...tasks, { id: Date.now(), text: task, done: false }]);
+  setTask("");
+  inputRef.current.focus();
+};
+
+<input ref={inputRef} value={task} onChange={(e) => setTask(e.target.value)} />
+```
+
+## 23. Filtering tasks (All / Active / Completed)
+
+```jsx
+const [filter, setFilter] = useState("all");
+
+const visibleTasks = tasks.filter((t) => {
+  if (filter === "active") return !t.done;
+  if (filter === "completed") return t.done;
+  return true;
+});
+
+<div>
+  <button onClick={() => setFilter("all")}>All</button>
+  <button onClick={() => setFilter("active")}>Active</button>
+  <button onClick={() => setFilter("completed")}>Completed</button>
+</div>
+
+<TaskList tasks={visibleTasks} onToggle={toggleTask} onRemove={removeTask} />
+```
+
+**Idea:** `visibleTasks` is **derived** from existing state. Do not create a second state for it, because you would have to keep the two in sync.
+
+Show a count of remaining tasks:
+```jsx
+<p>{tasks.filter((t) => !t.done).length} tasks left</p>
+```
+
+## 24. Conditional rendering
+
+Show something only when a condition is true.
+
+```jsx
+{tasks.length === 0 && <p>No tasks yet. Add one above.</p>}
+
+{tasks.length > 0 ? <TaskList ... /> : <p>Nothing to show.</p>}
+```
+
+| Technique | Use when |
+|---|---|
+| `if` statement (before `return`) | Returning completely different UI |
+| `condition && <Element />` | Show or hide one element |
+| `condition ? <A /> : <B />` | Choose between two elements |
+
+**Watch out:** `{0 && <p>Hi</p>}` displays `0` on the page. Use `{tasks.length > 0 && ...}` instead.
+
+## 25. Fetching data from an API
+
+```jsx
+import { useState, useEffect } from "react";
+
+function Users() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((res) => {
+        if (!res.ok) throw new Error("Request failed");
+        return res.json();
+      })
+      .then((data) => setUsers(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <ul>
+      {users.map((u) => <li key={u.id}>{u.name}</li>)}
+    </ul>
+  );
+}
+```
+
+- The empty array `[]` means the effect runs **once**, when the component first appears.
+- Always handle three states: **loading**, **error** and **success**.
+- This is the same idea used when an app loads data from an external service.
+
+## 26. Handling forms properly
+
+Wrapping the input in a `<form>` lets the Enter key work without extra code.
+
+```jsx
+const handleSubmit = (e) => {
+  e.preventDefault();   // stops the page from reloading
+  addTask();
+};
+
+<form onSubmit={handleSubmit}>
+  <input value={task} onChange={(e) => setTask(e.target.value)} />
+  <button type="submit">Add</button>
+</form>
+```
+
+- `e.preventDefault()` stops the browser's default behaviour of reloading the page on submit.
+- `onChange` fires on every keystroke, while `onSubmit` fires once when the form is sent.
+
+## 27. Class components vs function components
+
+| Feature | Function component | Class component |
+|---|---|---|
+| Syntax | A plain function | `class App extends React.Component` |
+| State | `useState` hook | `this.state` and `this.setState` |
+| Lifecycle | `useEffect` | `componentDidMount`, `componentDidUpdate`, `componentWillUnmount` |
+| Current use | Standard in modern React | Older code only |
+
+Function components with hooks are shorter and easier to read, so they are the recommended approach.
+
+## 28. Deploying the app
+
+1. Run `npm run build` to create the `dist/` folder.
+2. Push the project to GitHub.
+3. Connect the repo to a hosting service such as **Vercel** or **Netlify**.
+4. Set the build command to `npm run build` and the output folder to `dist`.
+5. Every `git push` then redeploys the site automatically.
+
+## 29. Git branching and workflow
+
+| Command | Purpose |
+|---|---|
+| `git status` | Shows changed and staged files |
+| `git branch feature-name` | Creates a branch |
+| `git checkout feature-name` | Switches to that branch |
+| `git merge feature-name` | Merges the branch into the current one |
+| `git pull` | Downloads and merges changes from GitHub |
+| `git clone <url>` | Copies a repo to your computer |
+| `git log --oneline` | Shows commit history in short form |
+
+**Why branches?** You can build a new feature without breaking the working version, then merge it once it is tested.
+
+**Good commit messages:** short and clear, e.g. `Add task filtering`, not `changes`.
+
+## 30. More README tips
+- Add a **live demo link** (e.g. your Vercel URL) near the top.
+- Include a **screenshot** with `![Screenshot](screenshot.png)`.
+- Add a **Table of Contents** for long READMEs.
+- Use a **License** file (MIT is common for learning projects).
+- Add a **Future improvements** section to show where the project can grow.
+
+## 31. More exam questions
+
+**Short answer**
+1. **What is the difference between props and state?** Props are passed in from a parent and are read-only. State is owned by the component and changed with its setter.
+2. **What does `e.preventDefault()` do?** It stops the default browser action, such as reloading the page when a form is submitted.
+3. **Why use `className` instead of `class`?** `class` is a reserved word in JavaScript.
+4. **What does the empty dependency array `[]` in `useEffect` mean?** The effect runs only once, after the first render.
+5. **What is "lifting state up"?** Moving state to a common parent so several child components can share it.
+6. **What is conditional rendering?** Showing different UI depending on a condition.
+
+**Long answer**
+1. Explain how React updates the page when state changes. *(Mention re-rendering, virtual DOM and diffing.)*
+2. Describe how you would split the To-Do app into components and explain the benefits. *(Reusability, readability, easier testing, props flow down.)*
+3. Explain the steps of creating and deploying a React app with Vite and GitHub. *(Create, install, develop, build, push, host.)*
+
+## 32. More key terms
+- **Props drilling:** passing props through many layers of components just to reach a deeply nested one.
+- **Side effect:** anything that happens outside rendering, such as fetching data or saving to storage.
+- **Dependency array:** the list in `useEffect` that decides when the effect runs again.
+- **Derived state:** a value calculated from existing state instead of stored separately.
+- **Lazy initialisation:** passing a function to `useState` so it runs only on the first render.
+- **Build:** the process of turning your source code into optimised files for production.
+- **Deployment:** publishing the app so others can use it online.
+
+## 33. Quick revision summary
+- **Structure:** components, JSX, props down, events up
+- **Data:** `useState` for changing data, `useEffect` for side effects
+- **Lists:** `map()` with a unique `key`
+- **Updates:** never edit state directly, always create a new copy
+- **Forms:** controlled inputs and `preventDefault()`
+- **Project:** Vite, `npm run dev`, `npm run build`, Git and GitHub
+- **Docs:** a clear README with install and usage steps
+
+Would you like all 33 sections combined into one Word document?
